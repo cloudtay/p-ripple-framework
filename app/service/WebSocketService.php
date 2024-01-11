@@ -2,12 +2,16 @@
 
 namespace app\service;
 
+use Cclilshy\PRippleProtocolWebsocket\WebSocket;
 use Worker\Built\JsonRpc\Attribute\RPC;
+use Worker\Built\JsonRpc\JsonRpc;
 use Worker\Socket\TCPConnection;
 use Worker\Worker;
 
-class WebSocket extends Worker
+class WebSocketService extends Worker
 {
+    use JsonRpc;
+
     public int $mode = Worker::MODE_INDEPENDENT;
 
     /**
@@ -15,27 +19,27 @@ class WebSocket extends Worker
      */
     public function initialize(): void
     {
-        $this->protocol(\Cclilshy\PRippleProtocolWebsocket\WebSocket::class);
-        $this->bind('tcp://0.0.0.0:8001');
+        $this->protocol(WebSocket::class);
+        $this->bind('tcp://0.0.0.0:8001', [SO_REUSEADDR => 1, SO_REUSEPORT => 1]);
     }
 
     /**
      * @param string        $context
-     * @param TCPConnection $client
+     * @param TCPConnection $tcpConnection
      * @return void
      */
-    public function onMessage(string $context, TCPConnection $client): void
+    public function onMessage(string $context, TCPConnection $tcpConnection): void
     {
-        $client->send("message: {$context}");
+        $tcpConnection->send("message: {$context}");
     }
 
     /**
-     * @param TCPConnection $client
+     * @param TCPConnection $tcpConnection
      * @return void
      */
-    public function onHandshake(TCPConnection $client): void
+    public function onHandshake(TCPConnection $tcpConnection): void
     {
-        $client->send("Hello world!");
+        $tcpConnection->send("Hello world!");
     }
 
     /**

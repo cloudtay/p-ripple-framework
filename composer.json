@@ -1,0 +1,40 @@
+{
+  "name": "cclilshy/p-ripple-framework",
+  "autoload": {
+    "psr-4": {
+      "PRipple\\Framework\\": "src/",
+      "app\\": "app/",
+      "component\\": "component/"
+    },
+    "files": [
+      "src/helper.php"
+    ]
+  },
+  "authors": [
+    {
+      "name": "cclilshy",
+      "email": "jingnigg@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "version": "dev-main",
+  "require-dev": {
+    "cclilshy/p-ripple": "dev-main",
+    "cclilshy/p-ripple-http-service": "dev-main",
+    "cclilshy/p-ripple-protocol-websocket": "dev-main",
+    "cclilshy/p-ripple-illuminate-database": "dev-main"
+  },
+  "require": {
+    "php": ">=8.3",
+    "ext-sockets": "*",
+    "ext-pcntl": "*",
+    "ext-posix": "*",
+    "ext-pdo": "*",
+    "ext-redis": "*",
+    "ext-event": "*",
+    "symfony/dotenv": "^7.0",
+    "illuminate/validation": "^10.40",
+    "illuminate/view": "^10.31"
+  }
+}

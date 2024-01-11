@@ -37,15 +37,9 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Interface;
+namespace PRipple\Framework\Std;
 
-use Core\Kernel;
-
-interface ConstructInterface
+interface ComponentInterface
 {
-    /**
-     * @param Kernel $kernel
-     * @return void
-     */
-    public static function handle(Kernel $kernel): void;
+    public static function initialize(): void;
 }

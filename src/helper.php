@@ -37,15 +37,11 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Interface;
+use PRipple\Framework\Facades\Env;
 
-use Core\Kernel;
-
-interface ConstructInterface
-{
-    /**
-     * @param Kernel $kernel
-     * @return void
-     */
-    public static function handle(Kernel $kernel): void;
+if (!function_exists('env')) {
+    function env(string $key, mixed $default = null): mixed
+    {
+        return Env::get($key, $default);
+    }
 }

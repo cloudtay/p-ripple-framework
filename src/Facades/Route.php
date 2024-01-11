@@ -37,15 +37,46 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Interface;
+namespace PRipple\Framework\Facades;
 
-use Core\Kernel;
+use PRipple\Framework\Route\Route as RouteOrigin;
+use PRipple\Framework\Route\RouteMap;
 
-interface ConstructInterface
+class Route
 {
+    public const string GET     = RouteOrigin::GET;
+    public const string POST    = RouteOrigin::POST;
+    public const string PUT     = RouteOrigin::PUT;
+    public const string DELETE  = RouteOrigin::DELETE;
+    public const string PATCH   = RouteOrigin::PATCH;
+    public const string HEAD    = RouteOrigin::HEAD;
+    public const string OPTIONS = RouteOrigin::OPTIONS;
+    public const string TRACE   = RouteOrigin::TRACE;
+    public const string CONNECT = RouteOrigin::CONNECT;
+    public const string STATIC  = RouteOrigin::STATIC;
+
     /**
-     * @param Kernel $kernel
-     * @return void
+     * @var RouteMap $routeMap
      */
-    public static function handle(Kernel $kernel): void;
+    public static RouteMap $routeMap;
+
+    /**
+     * @param string $method
+     * @param string $path
+     * @param array  $route
+     * @return RouteOrigin
+     */
+    public static function define(string $method, string $path, array $route): RouteOrigin
+    {
+        return Route::$routeMap->define($method, $path, $route);
+    }
+
+    /**
+     * @param RouteMap $routeMap
+     * @return RouteMap
+     */
+    public static function setRouteMapInstance(RouteMap $routeMap): RouteMap
+    {
+        return Route::$routeMap = $routeMap;
+    }
 }

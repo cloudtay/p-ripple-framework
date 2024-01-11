@@ -3,15 +3,29 @@
 namespace app\middleware;
 
 use Cclilshy\PRippleHttpService\Request;
-use Cclilshy\PRippleWeb\Std\MiddlewareStd;
 use Generator;
-use Override;
+use PRipple\Framework\Session\Session;
+use PRipple\Framework\Std\MiddlewareStd;
+use Throwable;
 
-class VerifyLogin implements MiddlewareStd
+class VerifyLoginMiddleware implements MiddlewareStd
 {
-
-    #[Override] public function handle(Request $request): Generator
+    /**
+     * @param Request $request
+     * @return Generator
+     * @throws Throwable
+     */
+    public function handle(Request $request): Generator
     {
-        // TODO: Implement handle() method.
+        /**
+         * @var Session $session
+         */
+        $session = $request->resolve(Session::class);
+        if (!$session->get('username')) {
+            yield $request->respondJson([
+                'code' => 0,
+                'msg'  => 'Please log in'
+            ]);
+        }
     }
 }

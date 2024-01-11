@@ -1,7 +1,9 @@
 <?php
 
 return [
-    'host'   => '127.0.0.1',
-    'port'   => 8008,
-    'thread' => 4
+    'host'           => '0.0.0.0',
+    'port'           => 8008,
+    'thread'         => 8,
+    'timeout'        => 60,
+    'timeout_upload' => 120
 ];

@@ -37,15 +37,85 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Interface;
+namespace PRipple\Framework\Route;
 
-use Core\Kernel;
-
-interface ConstructInterface
+class Route
 {
+    public const string GET     = 'GET';
+    public const string POST    = 'POST';
+    public const string PUT     = 'PUT';
+    public const string DELETE  = 'DELETE';
+    public const string PATCH   = 'PATCH';
+    public const string HEAD    = 'HEAD';
+    public const string OPTIONS = 'OPTIONS';
+    public const string TRACE   = 'TRACE';
+    public const string CONNECT = 'CONNECT';
+    public const string STATIC  = 'STATIC';
+
     /**
-     * @param Kernel $kernel
+     * @var string $method
+     */
+    private string $method;
+
+    /**
+     * @var string $class
+     */
+    private string $class;
+
+    /**
+     * @var array $middlewares
+     */
+    private array $middlewares = [];
+
+    /**
+     * @param string $class
+     * @param string $method
+     */
+    public function __construct(string $class, string $method)
+    {
+        $this->class  = $class;
+        $this->method = $method;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPath(): string
+    {
+        return $this->class;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMiddlewares(): array
+    {
+        return $this->middlewares;
+    }
+
+    /**
+     * @param string $middleware
      * @return void
      */
-    public static function handle(Kernel $kernel): void;
+    public function middleware(string $middleware): void
+    {
+        $this->middlewares[] = $middleware;
+    }
+
+    /**
+     * @param array $middlewares
+     * @return void
+     */
+    public function middlewares(array $middlewares): void
+    {
+        $this->middlewares = array_merge($this->middlewares, $middlewares);
+    }
 }

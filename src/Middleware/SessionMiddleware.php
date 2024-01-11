@@ -37,15 +37,39 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Interface;
+namespace PRipple\Framework\Middleware;
 
-use Core\Kernel;
+use Cclilshy\PRippleHttpService\Request;
+use Generator;
+use PRipple\Framework\Application;
+use PRipple\Framework\Session\Session;
+use PRipple\Framework\Std\MiddlewareStd;
+use Throwable;
 
-interface ConstructInterface
+class SessionMiddleware implements MiddlewareStd
 {
     /**
-     * @param Kernel $kernel
-     * @return void
+     * @param Request $request
+     * @return Generator
+     * @throws Throwable
      */
-    public static function handle(Kernel $kernel): void;
+    public function handle(Request $request): Generator
+    {
+        /**
+         * @var Application $webApplication
+         */
+        $webApplication = $request->resolve(Application::class);
+        if (!$sessionID = $request->cookieArray['P_SESSION_ID'] ?? null) {
+            $sessionID = md5(microtime(true) . $request->hash);
+            $request->response->setCookie(
+                'P_SESSION_ID',
+                $sessionID,
+                $webApplication->config['SESSION_EXPIRE'] ?? 7200
+            );
+        }
+        $session = $webApplication->sessionManager->buildSession($sessionID);
+        $request->inject(Session::class, $session);
+        $request->defer(fn() => $session->save());
+        yield;
+    }
 }
