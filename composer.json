@@ -16,6 +16,7 @@
       "email": "jingnigg@gmail.com"
     }
   ],
+  "license": "MIT",
   "minimum-stability": "dev",
   "prefer-stable": true,
   "version": "dev-main",
