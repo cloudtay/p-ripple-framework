@@ -53,13 +53,14 @@ use PRipple\Framework\Std\MiddlewareStd;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
+use Worker\Prop\Build;
 
 /**
  * Class WebApplication
  * 低耦合的方式避免Worker
  * 绑定路由规则并遵循HttpWorker的规范将处理器注入到Worker中
  */
-class Application
+class Core
 {
     public SessionManager $sessionManager;
     public array          $config;
@@ -105,7 +106,7 @@ class Application
      */
     public static function inject(HttpWorker $httpWorker, RouteMap $routeMap, array $config): void
     {
-        $webApplication = new Application($httpWorker, $routeMap, $config);
+        $webApplication = new Core($httpWorker, $routeMap, $config);
 
         /**
          * @throw Throwable
@@ -117,7 +118,7 @@ class Application
         /**
          * @throw Throwable
          */
-        $httpWorker->defineExceptionHandler(function (Throwable $error, Request $request) use ($webApplication) {
+        $httpWorker->defineExceptionHandler(function (Throwable $error, Build $event, Request $request) use ($webApplication) {
             $webApplication->exceptionHandler($error, $request);
         });
     }
@@ -133,7 +134,7 @@ class Application
     private function requestHandler(Request $request): Generator
     {
         $request->inject(Request::class, $request);
-        $request->inject(Application::class, $this);
+        $request->inject(Core::class, $this);
         if (isset($this->sessionManager)) {
             $request->inject(SessionManager::class, $this->sessionManager);
         }

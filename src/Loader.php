@@ -50,7 +50,7 @@ use PRipple\Illuminate\Database\Proxy\PDOProxyPool;
 use Throwable;
 use Worker\Worker;
 
-class WebApplication
+class Loader
 {
     public Kernel     $kernel;
     public HttpWorker $httpWorker;
@@ -166,7 +166,7 @@ class WebApplication
         $sessionType    = PRipple::getArgument('session')['type'] ?? 'file';
         $sessionPath    = PRipple::getArgument('session')['path'] ?? RUNTIME_PATH . '/session';
         $httpPublic     = PRipple::getArgument('http')['public'] ?? ROOT_PATH . '/public';
-        Application::inject($this->httpWorker, $this->routeMap, [
+        Core::inject($this->httpWorker, $this->routeMap, [
             'HTTP_UPLOAD_PATH' => $httpUploadPath,
             'SESSION_TYPE'     => $sessionType,
             'SESSION_PATH'     => $sessionPath,
@@ -197,10 +197,10 @@ class WebApplication
 
     /**
      * @param string $path
-     * @return WebApplication
+     * @return Loader
      */
-    public static function makeBuildProject(string $path): WebApplication
+    public static function makeBuildProject(string $path): Loader
     {
-        return new WebApplication($path);
+        return new Loader($path);
     }
 }

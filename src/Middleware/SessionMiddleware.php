@@ -41,7 +41,7 @@ namespace PRipple\Framework\Middleware;
 
 use Cclilshy\PRippleHttpService\Request;
 use Generator;
-use PRipple\Framework\Application;
+use PRipple\Framework\Core;
 use PRipple\Framework\Session\Session;
 use PRipple\Framework\Std\MiddlewareStd;
 use Throwable;
@@ -56,9 +56,9 @@ class SessionMiddleware implements MiddlewareStd
     public function handle(Request $request): Generator
     {
         /**
-         * @var Application $webApplication
+         * @var Core $webApplication
          */
-        $webApplication = $request->resolve(Application::class);
+        $webApplication = $request->resolve(Core::class);
         if (!$sessionID = $request->cookieArray['P_SESSION_ID'] ?? null) {
             $sessionID = md5(microtime(true) . $request->hash);
             $request->response->setCookie(

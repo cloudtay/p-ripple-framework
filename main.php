@@ -4,6 +4,6 @@ namespace PRipple;
 
 include_once __DIR__ . '/vendor/autoload.php';
 
-use PRipple\Framework\WebApplication;
+use PRipple\Framework\Loader;
 
-WebApplication::makeBuildProject(__DIR__)->kernel->launch();
+Loader::makeBuildProject(__DIR__)->kernel->launch();

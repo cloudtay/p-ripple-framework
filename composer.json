@@ -36,6 +36,7 @@
     "ext-event": "*",
     "symfony/dotenv": "^7.0",
     "illuminate/validation": "^10.40",
-    "illuminate/view": "^10.31"
+    "illuminate/view": "^10.31",
+    "ext-zend-opcache": "*"
   }
 }
