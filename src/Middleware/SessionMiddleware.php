@@ -39,26 +39,30 @@
 
 namespace PRipple\Framework\Middleware;
 
-use Cclilshy\PRippleHttpService\Request;
-use Generator;
+use Cclilshy\PRipple\Http\Service\Request;
+use Core\Container\Exception\Exception;
+use Illuminate\Support\Facades\Response;
 use PRipple\Framework\Core;
 use PRipple\Framework\Session\Session;
 use PRipple\Framework\Std\MiddlewareStd;
+use RedisException;
 use Throwable;
 
 class SessionMiddleware implements MiddlewareStd
 {
     /**
      * @param Request $request
-     * @return Generator
+     * @return Response|null
      * @throws Throwable
+     * @throws Exception
+     * @throws RedisException
      */
-    public function handle(Request $request): Generator
+    public function handle(Request $request): Response|null
     {
         /**
          * @var Core $webApplication
          */
-        $webApplication = $request->resolve(Core::class);
+        $webApplication = $request->make(Core::class);
         if (!$sessionID = $request->cookieArray['P_SESSION_ID'] ?? null) {
             $sessionID = md5(microtime(true) . $request->hash);
             $request->response->setCookie(
@@ -69,7 +73,6 @@ class SessionMiddleware implements MiddlewareStd
         }
         $session = $webApplication->sessionManager->buildSession($sessionID);
         $request->inject(Session::class, $session);
-        $request->defer(fn() => $session->save());
-        yield;
+        return null;
     }
 }

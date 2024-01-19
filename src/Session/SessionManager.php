@@ -43,7 +43,7 @@ use Core\Map\WorkerMap;
 use RedisException;
 use RuntimeException;
 use Throwable;
-use Worker\Built\RedisWorker;
+use Cclilshy\PRipple\Redis\Facade\RedisClient;
 
 /**
  * Class Session
@@ -89,9 +89,9 @@ class SessionManager
                 throw new RuntimeException('Redis name does not exist: ' . $redisName);
             } else {
                 /**
-                 * @var RedisWorker $redisWorker
+                 * @var RedisClient $redisWorker
                  */
-                $redisWorker = WorkerMap::get(RedisWorker::class);
+                $redisWorker = WorkerMap::get(RedisClient::class);
                 if (!isset($redisWorker->redisConfigs[$redisName])) {
                     throw new RuntimeException('Redis name does not exist: ' . $redisName);
                 }
@@ -134,18 +134,18 @@ class SessionManager
             return new Session($key, $this);
         } elseif ($this->type === SessionManager::TYPE_REDIS) {
             $sessionKey = "p:session_{$this->prefix}_{$key}";
-            if ($origin = \Facade\RedisWorker::getClient($this->redisName)->get($sessionKey)) {
+            if ($origin = RedisClient::getClient($this->redisName)->get($sessionKey)) {
                 try {
                     $session = unserialize($origin);
                 } catch (Throwable $exception) {
-                    \Facade\RedisWorker::getClient($this->redisName)->del($sessionKey);
+                    RedisClient::getClient($this->redisName)->del($sessionKey);
                     return new Session($key, $this);
                 }
                 if (!$session instanceof Session) {
-                    \Facade\RedisWorker::getClient($this->redisName)->del($sessionKey);
+                    RedisClient::getClient($this->redisName)->del($sessionKey);
                     return new Session($key, $this);
                 } elseif ($session->expire > 0 && $session->startTime + $session->expire > time()) {
-                    \Facade\RedisWorker::getClient($this->redisName)->del($sessionKey);
+                    RedisClient::getClient($this->redisName)->del($sessionKey);
                     return new Session($key, $this);
                 }
                 return $session;

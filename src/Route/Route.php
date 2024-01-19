@@ -39,6 +39,10 @@
 
 namespace PRipple\Framework\Route;
 
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
+
 class Route
 {
     public const string GET     = 'GET';
@@ -55,12 +59,17 @@ class Route
     /**
      * @var string $method
      */
-    private string $method;
+    private string           $method;
+    private ReflectionMethod $methodReflection;
+    private array            $methodAttributes = [];
+
 
     /**
      * @var string $class
      */
-    private string $class;
+    private string          $class;
+    private ReflectionClass $classReflection;
+    private array           $classAttributes = [];
 
     /**
      * @var array $middlewares
@@ -68,13 +77,34 @@ class Route
     private array $middlewares = [];
 
     /**
+     * @var string $requestMethod
+     */
+    private string $requestMethod;
+
+    /**
+     * @param string $requestMethod
      * @param string $class
      * @param string $method
+     * @throws ReflectionException
      */
-    public function __construct(string $class, string $method)
+    public function __construct(string $requestMethod, string $class, string $method)
     {
-        $this->class  = $class;
-        $this->method = $method;
+        $this->requestMethod = $requestMethod;
+        $this->class         = $class;
+        $this->method        = $method;
+
+        $this->classReflection  = new ReflectionClass($class);
+        $this->methodReflection = $this->classReflection->getMethod($method);
+        $this->classAttributes  = $this->classReflection->getAttributes();
+        $this->methodAttributes = $this->methodReflection->getAttributes();
+    }
+
+    /**
+     * @return string
+     */
+    public function requestMethod(): string
+    {
+        return $this->requestMethod;
     }
 
     /**
@@ -88,9 +118,41 @@ class Route
     /**
      * @return string
      */
-    public function getPath(): string
+    public function getClass(): string
     {
         return $this->class;
+    }
+
+    /**
+     * @return ReflectionMethod
+     */
+    public function getMethodReflection(): ReflectionMethod
+    {
+        return $this->methodReflection;
+    }
+
+    /**
+     * @return ReflectionClass
+     */
+    public function getClassReflection(): ReflectionClass
+    {
+        return $this->classReflection;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMethodAttributes(): array
+    {
+        return $this->methodAttributes;
+    }
+
+    /**
+     * @return array
+     */
+    public function getClassAttributes(): array
+    {
+        return $this->classAttributes;
     }
 
     /**

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Copyright (c) 2023 cclilshy
  * Contact Information:
@@ -37,39 +37,25 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Route;
+namespace PRipple\Framework\Exception;
 
-use InvalidArgumentException;
-
-class RouteMap
+/**
+ *
+ */
+class JsonException extends WebException
 {
     /**
-     * @var Route[] $routes
+     * @param string     $message
+     * @param array|null $data
+     * @param int|null   $code
      */
-    private array $routes = [];
-
-    /**
-     * @param string $method
-     * @param string $path
-     * @param array  $route
-     * @return Route
-     */
-    public function define(string $method, string $path, array $route): Route
+    public function __construct
+    (
+        string                     $message,
+        public readonly array|null $data = null,
+        int|null                   $code = -1
+    )
     {
-        if (count($route) !== 2) {
-            throw new InvalidArgumentException('Route must be an array with 2 elements');
-        }
-        list($class, $function) = $route;
-        return $this->routes[$method][trim($path, '/')] = new Route($method, $class, $function);
-    }
-
-    /**
-     * @param string $method
-     * @param string $path
-     * @return Route|null
-     */
-    public function match(string $method, string $path): Route|null
-    {
-        return $this->routes[$method][$path] ?? null;
+        parent::__construct($message, $code);
     }
 }

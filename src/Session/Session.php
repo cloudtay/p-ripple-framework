@@ -63,12 +63,10 @@ class Session
     }
 
     /**
-     * @throws RedisException
      */
     public function __destruct()
     {
         $this->startTime = time();
-        $this->save();
     }
 
     /**
@@ -91,40 +89,38 @@ class Session
      * @param string $key
      * @param mixed  $value
      * @return void
+     * @throws RedisException
      */
     public function set(string $key, mixed $value): void
     {
         $this->data[$key] = $value;
         $this->isChanged  = true;
-    }
-
-    /**
-     * 被反序列化后
-     */
-    public function __wakeup()
-    {
-        $this->isChanged = false;
+        $this->save();
     }
 
     /**
      * 删除一个键值
      * @param string $key
      * @return void
+     * @throws RedisException
      */
     public function delete(string $key): void
     {
         unset($this->data[$key]);
         $this->isChanged = true;
+        $this->save();
     }
 
     /**
      * 清空所有键值
      * @return void
+     * @throws RedisException
      */
     public function clear(): void
     {
         $this->data      = [];
         $this->isChanged = true;
+        $this->save();
     }
 
     /**
@@ -136,5 +132,14 @@ class Session
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->data[$key] ?? $default;
+    }
+
+    /**
+     * 被反序列化后
+     */
+    public function __wakeup()
+    {
+        $this->startTime = time();
+        $this->isChanged = false;
     }
 }

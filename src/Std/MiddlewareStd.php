@@ -39,10 +39,10 @@
 
 namespace PRipple\Framework\Std;
 
-use Cclilshy\PRippleHttpService\Request;
-use Generator;
+use Cclilshy\PRipple\Http\Service\Request;
+use Illuminate\Support\Facades\Response;
 
 interface MiddlewareStd
 {
-    public function handle(Request $request): Generator;
+    public function handle(Request $request): Response|null;
 }

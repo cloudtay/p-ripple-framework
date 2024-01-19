@@ -39,10 +39,13 @@
 
 namespace PRipple\Framework;
 
-use Cclilshy\PRippleHttpService\HttpWorker;
+use Cclilshy\PRipple\Http\Service\HttpWorker;
+use Cclilshy\PRipple\Redis\Facade\RedisClient as RedisClientFacade;
+use Cclilshy\PRipple\Redis\RedisClient;
 use Core\Kernel;
+use Core\Map\WorkerMap;
 use Core\Output;
-use Facade\RedisWorker;
+use Illuminate\Translation\Translator;
 use PRipple;
 use PRipple\Framework\Facades\Route;
 use PRipple\Framework\Route\RouteMap;
@@ -55,6 +58,7 @@ class Loader
     public Kernel     $kernel;
     public HttpWorker $httpWorker;
     public RouteMap   $routeMap;
+    public Translator $translator;
 
     /**
      * @return void
@@ -63,22 +67,24 @@ class Loader
     {
         define('ROOT_PATH', realpath($path));
         define('APP_PATH', ROOT_PATH . '/app');
-        define('ROUTES_PATH', ROOT_PATH . '/route');
+        define('HTTP_PATH', ROOT_PATH . '/app/http');
+        define('ROUTES_PATH', ROOT_PATH . '/app/http/route');
         define('RUNTIME_PATH', ROOT_PATH . '/runtime');
         define('CONFIG_PATH', ROOT_PATH . '/config');
+        $this->kernel = PRipple::configure([
+            'PP_RUNTIME_PATH' => RUNTIME_PATH . '/temp',
+            'PP_LOG_PATH'     => RUNTIME_PATH . '/log',
+            'PP_LANG_PATH'    => ROOT_PATH . '/resource/lang',
+        ]);
         $this->initialize();
     }
 
     /**
      * @return void
      */
-    public function initialize(): void
+    private function initialize(): void
     {
         try {
-            $this->kernel = PRipple::configure([
-                'PP_RUNTIME_PATH' => RUNTIME_PATH . '/temp',
-                'PP_LOG_PATH'     => RUNTIME_PATH . '/log',
-            ]);
             $this->initializeConfig();
             $this->initComponent();
             $this->initializeRedis();
@@ -112,8 +118,13 @@ class Loader
      */
     private function initializeRedis(): void
     {
-        foreach (PRipple::getArgument('redis') as $name => $config) {
-            RedisWorker::addClient($config, $name);
+        $redisServices = PRipple::getArgument('redis');
+        if (count($redisServices) > 0) {
+            $this->kernel->push(RedisClient::new(RedisClient::class));
+            WorkerMap::get(RedisClient::class)->initialize();
+            foreach (PRipple::getArgument('redis') as $name => $config) {
+                RedisClientFacade::addClient($config, $name);
+            }
         }
     }
 
@@ -166,7 +177,7 @@ class Loader
         $sessionType    = PRipple::getArgument('session')['type'] ?? 'file';
         $sessionPath    = PRipple::getArgument('session')['path'] ?? RUNTIME_PATH . '/session';
         $httpPublic     = PRipple::getArgument('http')['public'] ?? ROOT_PATH . '/public';
-        Core::inject($this->httpWorker, $this->routeMap, [
+        Core::install($this->httpWorker, $this->routeMap, [
             'HTTP_UPLOAD_PATH' => $httpUploadPath,
             'SESSION_TYPE'     => $sessionType,
             'SESSION_PATH'     => $sessionPath,
@@ -196,11 +207,11 @@ class Loader
     }
 
     /**
-     * @param string $path
+     * @param string $projectPath
      * @return Loader
      */
-    public static function makeBuildProject(string $path): Loader
+    public static function makeBuildProject(string $projectPath): Loader
     {
-        return new Loader($path);
+        return new Loader($projectPath);
     }
 }

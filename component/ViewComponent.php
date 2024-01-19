@@ -45,9 +45,9 @@ class ViewComponent implements ComponentInterface
      */
     public static function initViewEngine(array $viewPaths, string|null $cachePath = '/tmp'): void
     {
-        $filesystem      = Kernel::getInstance()->filesystem;
-        $eventDispatcher = Kernel::getInstance()->eventDispatcher;
-        $container       = LaravelComponent::$laravel->container;
+        $filesystem         = Kernel::getInstance()->filesystem;
+        $eventDispatcher    = Kernel::getInstance()->eventDispatcher;
+        $container          = LaravelComponent::$laravel->container;
         $bladeCompiler      = new BladeCompiler($filesystem, $cachePath);
         $viewEngineResolver = new ViewEngineResolver();
         $viewEngineResolver->register('blade', function () use ($bladeCompiler) {

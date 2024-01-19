@@ -39,7 +39,7 @@
 
 namespace PRipple\Framework\Facades;
 
-use Facade\RedisWorker;
+use Cclilshy\PRipple\Redis\Facade\RedisClient;
 use Redis as RedisNative;
 
 
@@ -126,6 +126,6 @@ class Redis
      */
     public static function connection(string|null $name = 'default'): RedisNative|null
     {
-        return RedisWorker::getClient($name);
+        return RedisClient::getClient($name);
     }
 }

@@ -1,33 +1,38 @@
 <?php
 
-namespace app\controller;
+namespace app\http\controller;
 
+use app\http\attribute\EnableSession;
+use app\http\attribute\PreventLoggedRequest;
+use app\http\attribute\PreventNotLoggedRequest;
+use app\http\attribute\Validate;
+use app\http\service\validator\LoginFormValidator;
 use app\model\UserModel;
 use app\service\WebSocketService;
-use Cclilshy\PRippleHttpService\Request;
+use Cclilshy\PRipple\Http\Service\Request;
 use Facade\JsonRpc;
 use Generator;
 use Illuminate\Support\Facades\View;
 use PRipple;
+use PRipple\Framework\Exception\JsonException;
 use PRipple\Framework\Facades\Log;
 use PRipple\Framework\Route\Route;
 use PRipple\Framework\Session\Session;
+use RedisException;
 
+/**
+ * @Class IndexController
+ * 类也支持注解,注解支持递归
+ */
+#[EnableSession] //该控制器所有方法都使用Session
 class IndexController
 {
-    /**
-     * @param Request $request
-     * @return Generator
-     */
     public static function index(Request $request): Generator
     {
         yield $request->respondBody('Hello,World!');
     }
 
-    /**
-     * @param Request $request 实现了 Coroutine(协程构建) 接口的请求对象
-     * @return Generator 返回一个生成器
-     */
+    #[PreventNotLoggedRequest] // 未登录自动阻断
     public static function info(Request $request): Generator
     {
         yield $request->respondJson([
@@ -37,14 +42,11 @@ class IndexController
                 'pid'       => posix_getpid(),
                 'rpc'       => array_keys(JsonRpc::getInstance()->rpcServiceConnections),
                 'configure' => PRipple::getArgument()
-            ],
+            ]
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Generator
-     */
+    #[PreventNotLoggedRequest] // 未登录自动阻断
     public static function data(Request $request): Generator
     {
         $data = UserModel::query()->first();
@@ -55,10 +57,7 @@ class IndexController
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Generator
-     */
+    #[PreventNotLoggedRequest] // 未登录自动阻断
     public static function notice(Request $request): Generator
     {
         if ($message = $request->query('message')) {
@@ -85,45 +84,37 @@ class IndexController
     }
 
     /**
-     * @param Request $request
-     * @param Session $session
+     * @param Request  $request  自动依赖注入
+     * @param Validate $validate 注解依赖注入
+     * @param Session  $session  注解依赖注入
      * @return Generator
+     * @throws JsonException
+     * @throws RedisException
      */
-    public static function login(Request $request, Session $session): Generator
+    #[PreventLoggedRequest]                // 禁止已登陆的用户访问
+    #[Validate(LoginFormValidator::class)] // 自动化表单验证
+    public static function login(Request $request, Validate $validate, Session $session): Generator
     {
-        if ($name = $request->query('username')) {
-            $session->set('username', $name);
-            yield $request->respondJson([
-                'code' => 0,
-                'msg'  => 'success',
-                'data' => [
-                    'message' => 'login success,' . $name
-                ],
-            ]);
-        } elseif ($name = $session->get('username')) {
-            yield $request->respondJson([
-                'code' => 0,
-                'msg'  => 'success',
-                'data' => [
-                    'message' => 'hello,' . $name
-                ],
-            ]);
+        if ($session->get('username')) {
+            throw new JsonException('login success');
+        } elseif ($validate->validator->fails()) {
+            throw new JsonException($validate->validator->errors()->first());
         } else {
-            yield $request->respondJson([
-                'code' => 1,
-                'msg'  => 'error',
+            $session->set('username', $username = $request->query('username'));
+            return yield $request->respondJson([
+                'code' => 0,
+                'msg'  => 'success',
                 'data' => [
-                    'message' => 'name is required'
+                    'message' => 'welcome,' . $username
                 ],
             ]);
         }
     }
 
     /**
-     * @param Request $request
-     * @param Session $session
-     * @return Generator
+     * @throws RedisException
      */
+    #[PreventNotLoggedRequest] // 未登录自动阻断
     public static function logout(Request $request, Session $session): Generator
     {
         $session->clear();
@@ -136,19 +127,13 @@ class IndexController
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @return Generator
-     */
+    #[EnableSession] // 启用Session
     public static function download(Request $request): Generator
     {
         yield $request->respondFile(__DIR__ . '/Index.php', 'Index.php');
     }
 
-    /**
-     * @param Request $request
-     * @return Generator
-     */
+    #[EnableSession] // 启用Session
     public static function upload(Request $request): Generator
     {
         if ($request->method === Route::GET) {
@@ -164,3 +149,4 @@ class IndexController
         }
     }
 }
+

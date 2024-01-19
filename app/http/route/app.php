@@ -1,7 +1,6 @@
 <?php
 
-use app\controller\IndexController;
-use app\middleware\VerifyLoginMiddleware;
+use app\http\controller\IndexController;
 use PRipple\Framework\Facades\Route;
 use PRipple\Framework\Middleware\SessionMiddleware;
 
@@ -15,9 +14,6 @@ Route::define(Route::POST, '/upload', [IndexController::class, 'upload']);
 /**
  * Session requests are supported
  */
-Route::define(Route::GET, '/login', [IndexController::class, 'login'])->middleware(SessionMiddleware::class);
-Route::define(Route::GET, '/logout', [IndexController::class, 'logout'])->middleware(SessionMiddleware::class);
-Route::define(Route::GET, '/info', [IndexController::class, 'info'])->middlewares([
-    SessionMiddleware::class,
-    VerifyLoginMiddleware::class
-]);
+Route::define(Route::GET, '/login', [IndexController::class, 'login']);
+Route::define(Route::GET, '/logout', [IndexController::class, 'logout']);
+Route::define(Route::GET, '/info', [IndexController::class, 'info']);

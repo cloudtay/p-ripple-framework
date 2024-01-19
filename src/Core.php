@@ -39,28 +39,30 @@
 
 namespace PRipple\Framework;
 
-use Cclilshy\PRippleHttpService\HttpWorker;
-use Cclilshy\PRippleHttpService\Request;
-use Cclilshy\PRippleHttpService\Response;
+use Cclilshy\PRipple\Http\Service\HttpWorker;
+use Cclilshy\PRipple\Http\Service\Request;
+use Cclilshy\PRipple\Http\Service\Response;
+use Core\Container\Container;
+use Event\Event;
 use Generator;
 use Illuminate\Support\Facades\View;
 use PRipple;
 use PRipple\Framework\Exception\RouteExcept;
 use PRipple\Framework\Exception\WebException;
+use PRipple\Framework\Route\Route;
 use PRipple\Framework\Route\RouteMap;
 use PRipple\Framework\Session\SessionManager;
 use PRipple\Framework\Std\MiddlewareStd;
 use ReflectionException;
 use ReflectionMethod;
 use Throwable;
-use Worker\Prop\Build;
 
 /**
  * Class WebApplication
  * 低耦合的方式避免Worker
  * 绑定路由规则并遵循HttpWorker的规范将处理器注入到Worker中
  */
-class Core
+class Core extends Container
 {
     public SessionManager $sessionManager;
     public array          $config;
@@ -75,6 +77,7 @@ class Core
      */
     public function __construct(HttpWorker $httpWorker, RouteMap $routeMap, array $config)
     {
+        parent::__construct();
         $this->httpWorker = $httpWorker;
         $this->routeMap   = $routeMap;
         $this->config     = $config;
@@ -87,14 +90,20 @@ class Core
                     $this->sessionManager = new SessionManager([
                         'FILE_PATH' => $filePath,
                     ]);
+                    $this->inject(SessionManager::class, $this->sessionManager);
                 }
                 break;
             case 'redis':
                 $this->sessionManager = new SessionManager([
                     'REDIS_NAME' => $config['SESSION_REDIS_NAME'] ?? 'default',
                 ], SessionManager::TYPE_REDIS);
+                $this->inject(SessionManager::class, $this->sessionManager);
                 break;
         }
+
+        $this->inject(HttpWorker::class, $httpWorker);
+        $this->inject(RouteMap::class, $routeMap);
+        $this->inject(Core::class, $this);
     }
 
     /**
@@ -104,7 +113,7 @@ class Core
      * @param array      $config
      * @return void
      */
-    public static function inject(HttpWorker $httpWorker, RouteMap $routeMap, array $config): void
+    public static function install(HttpWorker $httpWorker, RouteMap $routeMap, array $config): void
     {
         $webApplication = new Core($httpWorker, $routeMap, $config);
 
@@ -118,7 +127,7 @@ class Core
         /**
          * @throw Throwable
          */
-        $httpWorker->defineExceptionHandler(function (Throwable $error, Build $event, Request $request) use ($webApplication) {
+        $httpWorker->defineExceptionHandler(function (Throwable $error, Event $event, Request $request) use ($webApplication) {
             $webApplication->exceptionHandler($error, $request);
         });
     }
@@ -158,30 +167,37 @@ class Core
                 }
             }
         } else {
-            if (!class_exists($router->getPath())) {
-                throw new RouteExcept("500 Internal Server Error: class {$router->getPath()} does not exist", 500);
-            } elseif (!method_exists($router->getPath(), $router->getMethod())) {
+            if (!class_exists($router->getClass())) {
+                throw new RouteExcept("500 Internal Server Error: class {$router->getClass()} does not exist", 500);
+            } elseif (!method_exists($router->getClass(), $router->getMethod())) {
                 throw new RouteExcept("500 Internal Server Error: method {$router->getMethod()} does not exist", 500);
             }
-            $access = true;
+            $request->inject(Route::class, $router);
+            $blocking = false;
+            foreach (PRipple\Framework\Facades\Config::get('http', [])['middlewares'] as $middleware) {
+                if ($response = $request->callUserFunction([$request->make($middleware), 'handle'])) {
+                    yield $response;
+                    $blocking = true;
+                }
+            }
             foreach ($router->getMiddlewares() as $middleware) {
-                if (!$middlewareObject = $request->resolve($middleware)) {
+                if (!$middlewareObject = $request->make($middleware)) {
                     throw new WebException('500 Internal Server Error: class does not exist', 500);
                 }
                 /**
                  * @var MiddlewareStd $middlewareObject
                  */
-                foreach ($middlewareObject->handle($request) as $response) {
+                if ($response = $middlewareObject->handle($request)) {
                     yield $response;
-                    if ($response instanceof Response) {
-                        $access = false;
-                    }
+                    $blocking = true;
                 }
             }
-
-            if ($access) {
-                $params = $this->resolveRouteParams($router->getPath(), $router->getMethod(), $request);
-                foreach (call_user_func_array([$router->getPath(), $router->getMethod()], $params) as $response) {
+            foreach ($request->callUserFunction([$router->getClass(), $router->getMethod()]) as $response) {
+                if ($response instanceof Response) {
+                    if (!$blocking) {
+                        yield $response;
+                    }
+                } else {
                     yield $response;
                 }
             }
@@ -204,7 +220,7 @@ class Core
         $params           = [];
         foreach ($parameters as $parameter) {
             $types = $parameter->getType()?->getName() ?? [];
-            if (!$params[] = $request->resolve($types)) {
+            if (!$params[] = $request->make($types)) {
                 throw new WebException('500 Internal Server Error: class does not exist', 500);
             }
         }
@@ -220,18 +236,34 @@ class Core
      */
     private function exceptionHandler(mixed $error, Request $request): void
     {
-        $html = View::make('trace', [
+        if ($error instanceof PRipple\Framework\Exception\JsonException) {
+            $request->respondJson([
+                'code' => $error->getCode(),
+                'msg'  => $error->getMessage(),
+                'data' => $error->data,
+            ]);
+            $request->client->send($request->response->__toString());
+            return;
+        }
+        $errorInfo = [
             'title'  => $error->getMessage(),
             'traces' => $error->getTrace(),
             'file'   => $error->getFile(),
             'line'   => $error->getLine(),
-        ])->render();
-        try {
-            $request->client->send($request->response->setStatusCode($error->getCode())->setBody($html)->__toString());
-            $this->httpWorker->closeClient($request->client);
-        } catch (Throwable $exception) {
+        ];
+        if (in_array($request->headerArray['accept'] ?? 'text/html', ['application/json', 'text/json'])) {
+            $request->respondJson($errorInfo);
+            $request->response->setStatusCode($error->getCode());
+        } else {
+            $html = View::make('trace', $errorInfo)->render();
+            try {
+                $request->respondBody($html)->setStatusCode($error->getCode());
+                $this->httpWorker->removeTcpConnection($request->client);
+            } catch (Throwable $exception) {
 
+            }
         }
+        $request->client->send($request->response->__toString());
     }
 
     /**

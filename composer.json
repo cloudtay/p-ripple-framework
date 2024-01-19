@@ -37,6 +37,7 @@
     "symfony/dotenv": "^7.0",
     "illuminate/validation": "^10.40",
     "illuminate/view": "^10.31",
-    "ext-zend-opcache": "*"
+    "ext-zend-opcache": "*",
+    "cclilshy/p-ripple-redis": "dev-main"
   }
 }

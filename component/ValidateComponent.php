@@ -37,39 +37,16 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Route;
+namespace component;
 
-use InvalidArgumentException;
+use PRipple\Framework\Std\ComponentInterface;
 
-class RouteMap
+class ValidateComponent implements ComponentInterface
 {
     /**
-     * @var Route[] $routes
+     * @return void
      */
-    private array $routes = [];
-
-    /**
-     * @param string $method
-     * @param string $path
-     * @param array  $route
-     * @return Route
-     */
-    public function define(string $method, string $path, array $route): Route
+    public static function initialize(): void
     {
-        if (count($route) !== 2) {
-            throw new InvalidArgumentException('Route must be an array with 2 elements');
-        }
-        list($class, $function) = $route;
-        return $this->routes[$method][trim($path, '/')] = new Route($method, $class, $function);
-    }
-
-    /**
-     * @param string $method
-     * @param string $path
-     * @return Route|null
-     */
-    public function match(string $method, string $path): Route|null
-    {
-        return $this->routes[$method][$path] ?? null;
     }
 }
