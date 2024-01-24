@@ -4,9 +4,9 @@ namespace app\http\attribute;
 
 use Attribute;
 use Cclilshy\PRipple\Http\Service\Request;
+use Core\Container\AttributeBase;
 use Core\Container\Container;
 use Core\Container\Exception\Exception;
-use Core\Standard\AttributeInterface;
 use Override;
 use PRipple\Framework\Core;
 use PRipple\Framework\Session\Session;
@@ -14,7 +14,7 @@ use RedisException;
 use Throwable;
 
 #[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_CLASS | Attribute::TARGET_FUNCTION)]
-class EnableSession implements AttributeInterface
+class EnableSession extends AttributeBase
 {
     /**
      * @param Container $container

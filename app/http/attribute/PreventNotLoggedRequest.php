@@ -3,16 +3,16 @@
 namespace app\http\attribute;
 
 use Attribute;
+use Core\Container\AttributeBase;
 use Core\Container\Container;
 use Core\Container\Exception\Exception;
-use Core\Standard\AttributeInterface;
 use Override;
 use PRipple\Framework\Exception\JsonException;
 use PRipple\Framework\Session\Session;
 use Throwable;
 
 #[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_CLASS | Attribute::TARGET_FUNCTION)]
-class PreventNotLoggedRequest implements AttributeInterface
+class PreventNotLoggedRequest extends AttributeBase
 {
     /**
      * 依赖注入支持递归

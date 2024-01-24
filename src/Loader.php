@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Copyright (c) 2023 cclilshy
  * Contact Information:
@@ -174,9 +174,9 @@ class Loader
     private function initializeWebApplication(): void
     {
         $httpUploadPath = PRipple::getArgument('http')['upload_path'] ?? RUNTIME_PATH . '/temp';
+        $httpPublic     = PRipple::getArgument('http')['public'] ?? ROOT_PATH . '/public';
         $sessionType    = PRipple::getArgument('session')['type'] ?? 'file';
         $sessionPath    = PRipple::getArgument('session')['path'] ?? RUNTIME_PATH . '/session';
-        $httpPublic     = PRipple::getArgument('http')['public'] ?? ROOT_PATH . '/public';
         Core::install($this->httpWorker, $this->routeMap, [
             'HTTP_UPLOAD_PATH' => $httpUploadPath,
             'SESSION_TYPE'     => $sessionType,

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /*
  * Copyright (c) 2023 cclilshy
  * Contact Information:
@@ -43,18 +43,16 @@ use Cclilshy\PRipple\Http\Service\HttpWorker;
 use Cclilshy\PRipple\Http\Service\Request;
 use Cclilshy\PRipple\Http\Service\Response;
 use Core\Container\Container;
+use Core\Output;
 use Event\Event;
 use Generator;
 use Illuminate\Support\Facades\View;
 use PRipple;
 use PRipple\Framework\Exception\RouteExcept;
-use PRipple\Framework\Exception\WebException;
 use PRipple\Framework\Route\Route;
 use PRipple\Framework\Route\RouteMap;
 use PRipple\Framework\Session\SessionManager;
-use PRipple\Framework\Std\MiddlewareStd;
 use ReflectionException;
-use ReflectionMethod;
 use Throwable;
 
 /**
@@ -68,6 +66,14 @@ class Core extends Container
     public array          $config;
     private HttpWorker    $httpWorker;
     private RouteMap      $routeMap;
+    private const array TYPES = [
+        'css'         => 'text/css',
+        'js'          => 'application/javascript',
+        'html'        => 'text/html',
+        'png'         => 'image/png',
+        'jpg', 'jpeg' => 'image/jpeg',
+        'gif'         => 'image/gif'
+    ];
 
     /**
      * WebApplication constructor.
@@ -87,9 +93,7 @@ class Core extends Container
         switch (strtolower($config['SESSION_TYPE'] ?? 'file')) {
             case 'file':
                 if ($filePath = $config['SESSION_PATH'] ?? null) {
-                    $this->sessionManager = new SessionManager([
-                        'FILE_PATH' => $filePath,
-                    ]);
+                    $this->sessionManager = new SessionManager(['FILE_PATH' => $filePath]);
                     $this->inject(SessionManager::class, $this->sessionManager);
                 }
                 break;
@@ -120,16 +124,16 @@ class Core extends Container
         /**
          * @throw Throwable
          */
-        $httpWorker->defineRequestHandler(function (Request $request) use ($webApplication) {
-            return $webApplication->requestHandler($request);
-        });
+        $httpWorker->defineRequestHandler(
+            fn(Request $request) => $webApplication->requestHandler($request)
+        );
 
         /**
          * @throw Throwable
          */
-        $httpWorker->defineExceptionHandler(function (Throwable $error, Event $event, Request $request) use ($webApplication) {
-            $webApplication->exceptionHandler($error, $request);
-        });
+        $httpWorker->defineExceptionHandler(
+            fn(Throwable $error, Event $event, Request $request) => $webApplication->exceptionHandler($error, $request)
+        );
     }
 
     /**
@@ -152,16 +156,8 @@ class Core extends Container
             if ($publicPath = PRipple::getArgument('HTTP_PUBLIC')) {
                 if (is_dir($publicPath) && is_file($publicPath . FS . $target)) {
                     $body = file_get_contents($publicPath . FS . $target);
-                    $mime = match (pathinfo($target, PATHINFO_EXTENSION)) {
-                        'css' => 'text/css',
-                        'js' => 'application/javascript',
-                        'html' => 'text/html',
-                        'png' => 'image/png',
-                        'jpg', 'jpeg' => 'image/jpeg',
-                        'gif' => 'image/gif',
-                        default => 'text/plain',
-                    };
-                    yield $request->response->setStatusCode(200)->setHeader('Content-Type', $mime)->setBody($body);
+                    $mime = Core::TYPES[pathinfo($target, PATHINFO_EXTENSION)] ?? 'text/plain';
+                    return yield $request->response->setStatusCode(200)->setHeader('Content-Type', $mime)->setBody($body);
                 } else {
                     throw new RouteExcept('404 Not Found', 404);
                 }
@@ -181,13 +177,7 @@ class Core extends Container
                 }
             }
             foreach ($router->getMiddlewares() as $middleware) {
-                if (!$middlewareObject = $request->make($middleware)) {
-                    throw new WebException('500 Internal Server Error: class does not exist', 500);
-                }
-                /**
-                 * @var MiddlewareStd $middlewareObject
-                 */
-                if ($response = $middlewareObject->handle($request)) {
+                if ($response = $request->make($middleware)->handle($request)) {
                     yield $response;
                     $blocking = true;
                 }
@@ -202,29 +192,6 @@ class Core extends Container
                 }
             }
         }
-    }
-
-    /**
-     * 解析路由参数
-     * @param string  $class
-     * @param string  $method
-     * @param Request $request
-     * @return array
-     * @throws ReflectionException
-     * @throws Throwable
-     */
-    private function resolveRouteParams(string $class, string $method, Request $request): array
-    {
-        $reflectionMethod = new ReflectionMethod($class, $method);
-        $parameters       = $reflectionMethod->getParameters();
-        $params           = [];
-        foreach ($parameters as $parameter) {
-            $types = $parameter->getType()?->getName() ?? [];
-            if (!$params[] = $request->make($types)) {
-                throw new WebException('500 Internal Server Error: class does not exist', 500);
-            }
-        }
-        return $params;
     }
 
     /**
@@ -245,6 +212,7 @@ class Core extends Container
             $request->client->send($request->response->__toString());
             return;
         }
+
         $errorInfo = [
             'title'  => $error->getMessage(),
             'traces' => $error->getTrace(),
@@ -252,28 +220,16 @@ class Core extends Container
             'line'   => $error->getLine(),
         ];
         if (in_array($request->headerArray['accept'] ?? 'text/html', ['application/json', 'text/json'])) {
-            $request->respondJson($errorInfo);
-            $request->response->setStatusCode($error->getCode());
+            $request->respondJson($errorInfo)->setStatusCode($error->getCode())->__toString();
         } else {
             $html = View::make('trace', $errorInfo)->render();
             try {
                 $request->respondBody($html)->setStatusCode($error->getCode());
-                $this->httpWorker->removeTcpConnection($request->client);
             } catch (Throwable $exception) {
-
+                Output::printException($exception);
             }
         }
         $request->client->send($request->response->__toString());
-    }
-
-    /**
-     * @param $request
-     * @param $mime
-     * @param $body
-     * @return Generator
-     */
-    private function generateStaticResponse($request, $mime, $body): Generator
-    {
-        yield $request->response->setStatusCode(200)->setHeader('Content-Type', $mime)->setBody($body);
+        $this->httpWorker->removeTcpConnection($request->client);
     }
 }

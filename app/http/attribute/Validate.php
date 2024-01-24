@@ -5,9 +5,9 @@ namespace app\http\attribute;
 use Attribute;
 use Cclilshy\PRipple\Http\Service\Request;
 use Component\LaravelComponent;
+use Core\Container\AttributeBase;
 use Core\Container\Container;
 use Core\Container\Exception\Exception;
-use Core\Standard\AttributeInterface;
 use Illuminate\Validation\Validator;
 use Override;
 use PRipple\Framework\Interface\ValidatorInterface;
@@ -15,7 +15,7 @@ use PRipple\Framework\Route\Route;
 use Throwable;
 
 #[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_CLASS | Attribute::TARGET_FUNCTION)]
-class Validate implements AttributeInterface
+class Validate extends AttributeBase
 {
     private ValidatorInterface $validatorConfig;
     public Validator           $validator;
