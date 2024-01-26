@@ -5,7 +5,13 @@
     <title>File upload form example</title></head>
 <body><h1>File upload example</h1>
 <form action="/upload" enctype="multipart/form-data" method="post"><label for="file">Select file to upload：</label>
-    <input id="file" name="file" type="file"><br><br> <input type="submit" value="Upload">
+    <input id="file" name="file[]" type="file" multiple="multiple"><br>
+    <input type="submit" value="Upload">
+</form>
+
+<form action="/upload" enctype="multipart/form-data" method="post"><label for="file">Select file to upload：</label>
+    <input id="file" name="file" type="file"><br>
+    <input type="submit" value="Upload">
 </form>
 <form action="/upload" method="POST">
     <input name="name" type="text" value="test"> <input name="age" type="text" value="18">

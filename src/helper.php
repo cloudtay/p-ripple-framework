@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 /*
  * Copyright (c) 2023 cclilshy
  * Contact Information:
@@ -37,7 +38,7 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-use PRipple\Framework\Facades\Env;
+use Cclilshy\PRipple\Framework\Facades\Env;
 
 if (!function_exists('env')) {
     function env(string $key, mixed $default = null): mixed

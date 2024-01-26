@@ -3,8 +3,8 @@
 namespace app\construct;
 
 use app\service\WebSocketService;
-use Core\Kernel;
-use PRipple\Framework\Interface\ConstructInterface;
+use Cclilshy\PRipple\Core\Kernel;
+use Cclilshy\PRipple\Framework\Interface\ConstructInterface;
 
 class BeforeLoader implements ConstructInterface
 {

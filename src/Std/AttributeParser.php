@@ -37,11 +37,10 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Std;
+namespace Cclilshy\PRipple\Framework\Std;
 
-use Cclilshy\PRipple\Http\Service\Response;
-use PRipple\Framework\Route\Route;
 use Cclilshy\PRipple\Http\Service\Request;
+use Cclilshy\PRipple\Http\Service\Response;
 
 interface AttributeParser
 {

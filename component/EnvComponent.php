@@ -2,7 +2,7 @@
 
 namespace component;
 
-use PRipple\Framework\Std\ComponentInterface;
+use Cclilshy\PRipple\Framework\Std\ComponentInterface;
 use Symfony\Component\Dotenv\Dotenv;
 
 class EnvComponent implements ComponentInterface

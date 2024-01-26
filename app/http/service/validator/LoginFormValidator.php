@@ -3,9 +3,9 @@
 namespace app\http\service\validator;
 
 
+use Cclilshy\PRipple\Framework\Facades\Route;
+use Cclilshy\PRipple\Framework\Interface\ValidatorInterface;
 use Override;
-use PRipple\Framework\Interface\ValidatorInterface;
-use PRipple\Framework\Route\Route;
 
 /**
  * Class LoginFormValidate

@@ -3,6 +3,8 @@
 namespace component;
 
 use Cclilshy\LaravelComponentCore\Kernel;
+use Cclilshy\PRipple\Component\LaravelComponent;
+use Cclilshy\PRipple\Framework\Std\ComponentInterface;
 use Illuminate\Container\Container;
 use Illuminate\Support\Facades\View;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -10,7 +12,6 @@ use Illuminate\View\Engines\CompilerEngine as ViewCompilerEngine;
 use Illuminate\View\Engines\EngineResolver as ViewEngineResolver;
 use Illuminate\View\Factory as ViewFactory;
 use Illuminate\View\FileViewFinder as ViewFileFinder;
-use PRipple\Framework\Std\ComponentInterface;
 
 class ViewComponent implements ComponentInterface
 {
@@ -21,7 +22,7 @@ class ViewComponent implements ComponentInterface
     {
         $viewPaths = [
             ROOT_PATH . '/src/Resources/Views',
-            ROOT_PATH . '/app/view'
+            ROOT_PATH . '/app/http/view'
         ];
         if ($viewPath = $config['VIEW_PATH_BLADE'] ?? null) {
             if (is_array($viewPath)) {

@@ -2,9 +2,9 @@
   "name": "cclilshy/p-ripple-framework",
   "autoload": {
     "psr-4": {
-      "PRipple\\Framework\\": "src/",
       "app\\": "app/",
-      "component\\": "component/"
+      "component\\": "component/",
+      "Cclilshy\\PRipple\\Framework\\": "src/"
     },
     "files": [
       "src/helper.php"
@@ -20,12 +20,6 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "version": "dev-main",
-  "require-dev": {
-    "cclilshy/p-ripple": "dev-main",
-    "cclilshy/p-ripple-http-service": "dev-main",
-    "cclilshy/p-ripple-protocol-websocket": "dev-main",
-    "cclilshy/p-ripple-illuminate-database": "dev-main"
-  },
   "require": {
     "php": ">=8.3",
     "ext-sockets": "*",
@@ -38,6 +32,10 @@
     "illuminate/validation": "^10.40",
     "illuminate/view": "^10.31",
     "ext-zend-opcache": "*",
-    "cclilshy/p-ripple-redis": "dev-main"
+    "cclilshy/p-ripple": "*",
+    "cclilshy/p-ripple-redis": "v1.0.0",
+    "cclilshy/p-ripple-http-service": "dev-main",
+    "cclilshy/p-ripple-protocol-websocket": "v1.0.0",
+    "cclilshy/p-ripple-illuminate-database": "v1.0.0"
   }
 }

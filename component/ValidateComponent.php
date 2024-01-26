@@ -39,7 +39,7 @@
 
 namespace component;
 
-use PRipple\Framework\Std\ComponentInterface;
+use Cclilshy\PRipple\Framework\Std\ComponentInterface;
 
 class ValidateComponent implements ComponentInterface
 {

@@ -8,32 +8,32 @@ use app\http\attribute\Validate;
 use app\http\service\validator\LoginFormValidator;
 use app\model\UserModel;
 use app\service\WebSocketService;
+use Cclilshy\PRipple\Facade\JsonRpc;
+use Cclilshy\PRipple\Framework\Exception\JsonException;
+use Cclilshy\PRipple\Framework\Facades\Log;
+use Cclilshy\PRipple\Framework\Route\Route;
+use Cclilshy\PRipple\Framework\Session\Session;
 use Cclilshy\PRipple\Http\Service\Request;
-use Facade\JsonRpc;
+use Cclilshy\PRipple\PRipple;
 use Generator;
 use Illuminate\Support\Facades\View;
-use PRipple;
-use PRipple\Framework\Exception\JsonException;
-use PRipple\Framework\Facades\Log;
-use PRipple\Framework\Route\Route;
-use PRipple\Framework\Session\Session;
 use RedisException;
+use Throwable;
 
 /**
  * @Class IndexController
- * 类也支持注解,注解支持递归
  */
 class IndexController
 {
     public static function index(Request $request): Generator
     {
-        yield $request->respondBody('Hello,World!');
+        return yield $request->respondBody('Hello,World!');
     }
 
     #[PreventNotLoggedRequest]
     public static function info(Request $request): Generator
     {
-        yield $request->respondJson([
+        return yield $request->respondJson([
             'code' => 0,
             'msg'  => 'success',
             'data' => [
@@ -48,7 +48,7 @@ class IndexController
     public static function data(Request $request): Generator
     {
         $data = UserModel::query()->first();
-        yield $request->respondJson([
+        return yield $request->respondJson([
             'code' => 0,
             'msg'  => 'success',
             'data' => $data
@@ -59,33 +59,27 @@ class IndexController
     public static function notice(Request $request): Generator
     {
         if ($message = $request->query('message')) {
+            // 请求结束后执行
+            $request->defer(fn() => Log::write("notice:$message"));
             JsonRpc::call([WebSocketService::class, 'sendMessageToAll'], $message);
-            yield $request->respondJson([
+            return yield $request->respondJson([
                 'code' => 0,
                 'msg'  => 'success',
                 'data' => [
                     'message' => $message
                 ]
             ]);
-
-            // 请求结束后执行
-            $request->defer(fn() => Log::write("notice:$message"));
-        } else {
-            yield $request->respondJson([
-                'code' => 1,
-                'msg'  => 'error',
-                'data' => [
-                    'message' => 'message is required'
-                ],
-            ]);
         }
+        return yield $request->respondJson([
+            'code' => 1,
+            'msg'  => 'error',
+            'data' => [
+                'message' => 'message is required'
+            ],
+        ]);
     }
 
     /**
-     * @param Request  $request  自动依赖注入
-     * @param Validate $validate 注解依赖注入
-     * @param Session  $session  注解的注解依赖注入
-     * @return Generator
      * @throws JsonException
      * @throws RedisException
      */
@@ -108,13 +102,21 @@ class IndexController
         }
     }
 
-    /**
-     * @throws RedisException
-     */
+
     #[PreventNotLoggedRequest]
     public static function logout(Request $request, Session $session): Generator
     {
-        $session->clear();
+        try {
+            $session->clear();
+        } catch (RedisException $exception) {
+            return yield $request->respondJson([
+                'code' => -1,
+                'msg'  => 'error',
+                'data' => [
+                    'message' => $exception->getMessage()
+                ],
+            ]);
+        }
         yield $request->respondJson([
             'code' => 0,
             'msg'  => 'success',
@@ -124,11 +126,19 @@ class IndexController
         ]);
     }
 
+    /**
+     * @param Request $request
+     * @return Generator
+     */
     public static function download(Request $request): Generator
     {
         yield $request->respondFile(__DIR__ . '/IndexController.php', 'Index.php');
     }
 
+    /**
+     * @param Request $request
+     * @return Generator
+     */
     public static function upload(Request $request): Generator
     {
         if ($request->method === Route::GET) {
@@ -142,6 +152,15 @@ class IndexController
                 });
             }
         }
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public static function sleep(Request $request): Generator
+    {
+        \Co\sleep(5);
+        yield $request->respondBody('sleep 5s');
     }
 }
 

@@ -37,21 +37,21 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework;
+namespace Cclilshy\PRipple\Framework;
 
+use Cclilshy\PRipple\Core\Kernel;
+use Cclilshy\PRipple\Core\Map\WorkerMap;
+use Cclilshy\PRipple\Core\Output;
+use Cclilshy\PRipple\Database\Proxy\PDOProxyPool;
+use Cclilshy\PRipple\Framework\Facades\Route;
+use Cclilshy\PRipple\Framework\Route\RouteMap;
 use Cclilshy\PRipple\Http\Service\HttpWorker;
+use Cclilshy\PRipple\PRipple;
 use Cclilshy\PRipple\Redis\Facade\RedisClient as RedisClientFacade;
 use Cclilshy\PRipple\Redis\RedisClient;
-use Core\Kernel;
-use Core\Map\WorkerMap;
-use Core\Output;
+use Cclilshy\PRipple\Worker\Worker;
 use Illuminate\Translation\Translator;
-use PRipple;
-use PRipple\Framework\Facades\Route;
-use PRipple\Framework\Route\RouteMap;
-use PRipple\Illuminate\Database\Proxy\PDOProxyPool;
 use Throwable;
-use Worker\Worker;
 
 class Loader
 {
@@ -72,7 +72,7 @@ class Loader
         define('RUNTIME_PATH', ROOT_PATH . '/runtime');
         define('CONFIG_PATH', ROOT_PATH . '/config');
         $this->kernel = PRipple::configure([
-            'PP_RUNTIME_PATH' => RUNTIME_PATH . '/temp',
+            'PP_RUNTIME_PATH' => '/tmp',
             'PP_LOG_PATH'     => RUNTIME_PATH . '/log',
             'PP_LANG_PATH'    => ROOT_PATH . '/resource/lang',
         ]);

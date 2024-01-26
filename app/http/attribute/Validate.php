@@ -3,15 +3,15 @@
 namespace app\http\attribute;
 
 use Attribute;
+use Cclilshy\Container\AttributeBase;
+use Cclilshy\Container\Container;
+use Cclilshy\Container\Exception\Exception;
+use Cclilshy\PRipple\Component\LaravelComponent;
+use Cclilshy\PRipple\Framework\Interface\ValidatorInterface;
+use Cclilshy\PRipple\Framework\Route\Route;
 use Cclilshy\PRipple\Http\Service\Request;
-use Component\LaravelComponent;
-use Core\Container\AttributeBase;
-use Core\Container\Container;
-use Core\Container\Exception\Exception;
 use Illuminate\Validation\Validator;
 use Override;
-use PRipple\Framework\Interface\ValidatorInterface;
-use PRipple\Framework\Route\Route;
 use Throwable;
 
 #[Attribute(Attribute::TARGET_METHOD | Attribute::TARGET_CLASS | Attribute::TARGET_FUNCTION)]
@@ -40,7 +40,7 @@ class Validate extends AttributeBase
         $route      = $request->make(Route::class);
         $methods    = $this->validatorConfig->method();
         $accordWith = match (is_string($methods)) {
-            true => $methods === $route->requestMethod(),
+            true  => $methods === $route->requestMethod(),
             false => in_array($route->requestMethod(), $methods)
         };
         if ($accordWith) {

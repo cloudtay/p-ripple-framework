@@ -37,9 +37,11 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Route;
+namespace Cclilshy\PRipple\Framework\Route;
 
+use Cclilshy\PRipple\Core\Output;
 use InvalidArgumentException;
+use ReflectionException;
 
 class RouteMap
 {
@@ -60,7 +62,12 @@ class RouteMap
             throw new InvalidArgumentException('Route must be an array with 2 elements');
         }
         list($class, $function) = $route;
-        return $this->routes[$method][trim($path, '/')] = new Route($method, $class, $function);
+        try {
+            return $this->routes[$method][trim($path, '/')] = new Route($method, $class, $function);
+        } catch (ReflectionException $exception) {
+            Output::printException($exception);
+            exit(-1);
+        }
     }
 
     /**

@@ -37,14 +37,14 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Middleware;
+namespace Cclilshy\PRipple\Framework\Middleware;
 
+use Cclilshy\Container\Exception\Exception;
+use Cclilshy\PRipple\Framework\Core;
+use Cclilshy\PRipple\Framework\Session\Session;
+use Cclilshy\PRipple\Framework\Std\MiddlewareStd;
 use Cclilshy\PRipple\Http\Service\Request;
-use Core\Container\Exception\Exception;
 use Illuminate\Support\Facades\Response;
-use PRipple\Framework\Core;
-use PRipple\Framework\Session\Session;
-use PRipple\Framework\Std\MiddlewareStd;
 use RedisException;
 use Throwable;
 

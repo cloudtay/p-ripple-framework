@@ -1,5 +1,3 @@
-## Brief introduction
-
 <p align="center">
 <img src="https://cloudtay.com/static/image/logo-wide.png" width="420" alt="Logo">
 </p>
@@ -10,29 +8,29 @@
 
 > The documentation is being assembled, so check out the controller examples
 
-## Directory structure
+## Directory
 
 ```text
 ROOT
 ├──── app - 应用目录
-│     ├── construct        # Construct a service process
-│     ├── http             # HTTP applications
-│     │     ├── attribute  # Commentary analyzer
-│     │     ├── controller # Controller
-│     │     ├── middleware # Middleware
-│     │     ├── public     # Public directories
-│     │     ├── route      # Route configuration
-│     │     ├── service    # Business Services
-│     │     └── view       # View files
-│     ├── model            # Data model
-│     └── service          # Resident service
-├──── component            # Component-resident construction
-├──── config               # Common configuration
-├──── resource             # Resource directory
-│     ├── cert             # Certificate
-│     ├── database         # SQLite file
-│     └── lang             # Multilingual documents
-└──── runtime              # Runtime directory
+│     ├── construct        # 构建服务
+│     ├── http             # HTTP应用程序
+│     │     ├── attribute  # HTTP注解解析器
+│     │     ├── controller # HTTP控制器
+│     │     ├── middleware # HTTP中间件
+│     │     ├── public     # HTTP公共目录
+│     │     ├── route      # HTTP路由
+│     │     ├── service    # HTTP业务服务
+│     │     └── view       # HTTP视图
+│     ├── model            # 模型
+│     └── service          # 常驻服务
+├──── component            # 组件目录
+├──── config               # 配置目录
+├──── resource             # 资源目录
+│     ├── cert             # 证书目录
+│     ├── database         # 数据库目录
+│     └── lang             # 语言目录
+└──── runtime              # 运行时目录
 ```
 
 ## Example
@@ -42,40 +40,38 @@ ROOT
 
 namespace app\http\controller;
 
-use app\http\attribute\EnableSession;
 use app\http\attribute\PreventLoggedRequest;
 use app\http\attribute\PreventNotLoggedRequest;
 use app\http\attribute\Validate;
 use app\http\service\validator\LoginFormValidator;
 use app\model\UserModel;
 use app\service\WebSocketService;
+use Cclilshy\PRipple\Facade\JsonRpc;
+use Cclilshy\PRipple\Framework\Exception\JsonException;
+use Cclilshy\PRipple\Framework\Facades\Log;
+use Cclilshy\PRipple\Framework\Route\Route;
+use Cclilshy\PRipple\Framework\Session\Session;
 use Cclilshy\PRipple\Http\Service\Request;
-use Facade\JsonRpc;
+use Cclilshy\PRipple\PRipple;
 use Generator;
 use Illuminate\Support\Facades\View;
-use PRipple;
-use PRipple\Framework\Exception\JsonException;
-use PRipple\Framework\Facades\Log;
-use PRipple\Framework\Route\Route;
-use PRipple\Framework\Session\Session;
 use RedisException;
+use Throwable;
 
 /**
  * @Class IndexController
- * Classes also support annotations, which support recursion
  */
-#[EnableSession] //The controller uses Session for all methods
 class IndexController
 {
     public static function index(Request $request): Generator
     {
-        yield $request->respondBody('Hello,World!');
+        return yield $request->respondBody('Hello,World!');
     }
 
-    #[PreventNotLoggedRequest] // Failure to log in is automatically blocked
+    #[PreventNotLoggedRequest]
     public static function info(Request $request): Generator
     {
-        yield $request->respondJson([
+        return yield $request->respondJson([
             'code' => 0,
             'msg'  => 'success',
             'data' => [
@@ -86,58 +82,51 @@ class IndexController
         ]);
     }
 
-    #[PreventNotLoggedRequest] 
+    #[PreventNotLoggedRequest]
     public static function data(Request $request): Generator
     {
         $data = UserModel::query()->first();
-        yield $request->respondJson([
+        return yield $request->respondJson([
             'code' => 0,
             'msg'  => 'success',
             'data' => $data
         ]);
     }
 
-    #[PreventNotLoggedRequest] 
+    #[PreventNotLoggedRequest]
     public static function notice(Request $request): Generator
     {
         if ($message = $request->query('message')) {
+            // 请求结束后执行
+            $request->defer(fn() => Log::write("notice:$message"));
             JsonRpc::call([WebSocketService::class, 'sendMessageToAll'], $message);
-            yield $request->respondJson([
+            return yield $request->respondJson([
                 'code' => 0,
                 'msg'  => 'success',
                 'data' => [
                     'message' => $message
                 ]
             ]);
-
-            // 请求结束后执行
-            $request->defer(fn() => Log::write("notice:$message"));
-        } else {
-            yield $request->respondJson([
-                'code' => 1,
-                'msg'  => 'error',
-                'data' => [
-                    'message' => 'message is required'
-                ],
-            ]);
         }
+        return yield $request->respondJson([
+            'code' => 1,
+            'msg'  => 'error',
+            'data' => [
+                'message' => 'message is required'
+            ],
+        ]);
     }
 
     /**
-     * @param Request  $request  Automatic dependency injection
-     * @param Validate $validate Attribute dependency injection
-     * @param Session  $session  Attribute recursion dependency injection
-     * @return Generator
      * @throws JsonException
      * @throws RedisException
      */
-    #[PreventLoggedRequest]                // Prohibit logged-in users
-    #[Validate(LoginFormValidator::class)] // Automate form validation
+    #[PreventLoggedRequest]                // 禁止已登陆的用户访问
+    #[Validate(LoginFormValidator::class)] // 自动化表单验证
     public static function login(Request $request, Validate $validate, Session $session): Generator
     {
-        if ($session->get('username')) {
-            throw new JsonException('login success');
-        } elseif ($validate->validator->fails()) {
+        if ($validate->validator->fails()) {
+            $request->defer(fn() => Log::write("[login failed:{$request->header('REMOTE_ADDR')}]"));
             throw new JsonException($validate->validator->errors()->first());
         } else {
             $session->set('username', $username = $request->query('username'));
@@ -151,32 +140,48 @@ class IndexController
         }
     }
 
-    /**
-     * @throws RedisException
-     */
-    #[PreventNotLoggedRequest] 
+
+    #[PreventNotLoggedRequest]
     public static function logout(Request $request, Session $session): Generator
     {
-        $session->clear();
+        try {
+            $session->clear();
+        } catch (RedisException $exception) {
+            return yield $request->respondJson([
+                'code' => -1,
+                'msg'  => 'error',
+                'data' => [
+                    'message' => $exception->getMessage()
+                ],
+            ]);
+        }
         yield $request->respondJson([
             'code' => 0,
             'msg'  => 'success',
             'data' => [
                 'message' => 'logout success'
-            ],
+            ]
         ]);
     }
 
+    /**
+     * @param Request $request
+     * @return Generator
+     */
     public static function download(Request $request): Generator
     {
-        yield $request->respondFile(__DIR__ . '/Index.php', 'Index.php');
+        yield $request->respondFile(__DIR__ . '/IndexController.php', 'Index.php');
     }
 
+    /**
+     * @param Request $request
+     * @return Generator
+     */
     public static function upload(Request $request): Generator
     {
         if ($request->method === Route::GET) {
             $template = View::make('upload', ['title' => 'please select upload file'])->render();
-            yield $request->respondBody($template);
+            return yield $request->respondBody($template);
         } else {
             yield $request->respondBody('wait...');
             if ($request->upload) {
@@ -185,6 +190,15 @@ class IndexController
                 });
             }
         }
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public static function sleep(Request $request): Generator
+    {
+        \Co\sleep(5);
+        yield $request->respondBody('sleep 5s');
     }
 }
 ```

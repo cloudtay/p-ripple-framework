@@ -37,21 +37,23 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework;
+namespace Cclilshy\PRipple\Framework;
 
+use Cclilshy\Container\Container;
+use Cclilshy\PRipple\Core\Event\Event;
+use Cclilshy\PRipple\Core\Output;
+use Cclilshy\PRipple\Facade\Buffer;
+use Cclilshy\PRipple\Framework\Exception\JsonException;
+use Cclilshy\PRipple\Framework\Exception\RouteExcept;
+use Cclilshy\PRipple\Framework\Route\Route;
+use Cclilshy\PRipple\Framework\Route\RouteMap;
+use Cclilshy\PRipple\Framework\Session\SessionManager;
 use Cclilshy\PRipple\Http\Service\HttpWorker;
 use Cclilshy\PRipple\Http\Service\Request;
 use Cclilshy\PRipple\Http\Service\Response;
-use Core\Container\Container;
-use Core\Output;
-use Event\Event;
+use Cclilshy\PRipple\PRipple;
 use Generator;
 use Illuminate\Support\Facades\View;
-use PRipple;
-use PRipple\Framework\Exception\RouteExcept;
-use PRipple\Framework\Route\Route;
-use PRipple\Framework\Route\RouteMap;
-use PRipple\Framework\Session\SessionManager;
 use ReflectionException;
 use Throwable;
 
@@ -155,7 +157,7 @@ class Core extends Container
         if (!$router = $this->routeMap->match($request->method, $target)) {
             if ($publicPath = PRipple::getArgument('HTTP_PUBLIC')) {
                 if (is_dir($publicPath) && is_file($publicPath . FS . $target)) {
-                    $body = file_get_contents($publicPath . FS . $target);
+                    $body = Buffer::fileGetContents($publicPath . FS . $target);
                     $mime = Core::TYPES[pathinfo($target, PATHINFO_EXTENSION)] ?? 'text/plain';
                     return yield $request->response->setStatusCode(200)->setHeader('Content-Type', $mime)->setBody($body);
                 } else {
@@ -170,7 +172,7 @@ class Core extends Container
             }
             $request->inject(Route::class, $router);
             $blocking = false;
-            foreach (PRipple\Framework\Facades\Config::get('http', [])['middlewares'] as $middleware) {
+            foreach (Facades\Config::get('http', [])['middlewares'] as $middleware) {
                 if ($response = $request->callUserFunction([$request->make($middleware), 'handle'])) {
                     yield $response;
                     $blocking = true;
@@ -203,7 +205,7 @@ class Core extends Container
      */
     private function exceptionHandler(mixed $error, Request $request): void
     {
-        if ($error instanceof PRipple\Framework\Exception\JsonException) {
+        if ($error instanceof JsonException) {
             $request->respondJson([
                 'code' => $error->getCode(),
                 'msg'  => $error->getMessage(),

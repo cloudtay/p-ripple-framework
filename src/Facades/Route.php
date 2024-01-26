@@ -37,10 +37,10 @@
  * 由于软件或软件的使用或其他交易而引起的任何索赔、损害或其他责任承担责任。
  */
 
-namespace PRipple\Framework\Facades;
+namespace Cclilshy\PRipple\Framework\Facades;
 
-use PRipple\Framework\Route\Route as RouteOrigin;
-use PRipple\Framework\Route\RouteMap;
+use Cclilshy\PRipple\Framework\Route\Route as RouteOrigin;
+use Cclilshy\PRipple\Framework\Route\RouteMap;
 
 class Route
 {

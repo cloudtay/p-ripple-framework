@@ -2,7 +2,8 @@
 
 namespace app\model;
 
-use PRipple\Illuminate\Database\Eloquent\Model;
+
+use Cclilshy\PRipple\Database\Eloquent\Model;
 
 class UserModel extends Model
 {

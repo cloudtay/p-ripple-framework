@@ -3,8 +3,11 @@
 use component\EnvComponent;
 use component\ValidateComponent;
 use component\ViewComponent;
-use PRipple\Illuminate\Database\Component as DatabaseComponent;
+use Cclilshy\PRipple\Database\Component as DatabaseComponent;
 
+/**
+ * 组件加载器列表 List of component loaders
+ */
 return [
     EnvComponent::class,
     ViewComponent::class,
