@@ -4,7 +4,7 @@
  */
 return [
     // 默认驱动
-    'type'   => 'file',
+    'type'   => 'redis',
 
     // 过期时间
     'expire' => 7200

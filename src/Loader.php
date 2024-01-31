@@ -93,6 +93,7 @@ class Loader
             $this->initializeHttpWorker();
             $this->initializeWebApplication();
             $this->initializeWebConstruct();
+            $this->kernel->push($this->httpWorker);
         } catch (Throwable $exception) {
             Output::printException($exception);
             exit(0);
@@ -165,7 +166,6 @@ class Loader
         $this->httpWorker = HttpWorker::new(HttpWorker::class)
             ->bind($addressFull, [SO_REUSEPORT => 1, SO_REUSEADDR => 1])
             ->mode(Worker::MODE_INDEPENDENT, $thread);
-        $this->kernel->push($this->httpWorker);
     }
 
     /**

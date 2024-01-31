@@ -33,7 +33,7 @@
     "illuminate/view": "^10.31",
     "ext-zend-opcache": "*",
     "cclilshy/p-ripple": "*",
-    "cclilshy/p-ripple-redis": "v1.0.0",
+    "cclilshy/p-ripple-redis": "dev-main",
     "cclilshy/p-ripple-http-service": "dev-main",
     "cclilshy/p-ripple-protocol-websocket": "v1.0.0",
     "cclilshy/p-ripple-illuminate-database": "v1.0.0"

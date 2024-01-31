@@ -91,7 +91,7 @@ class SessionManager
                 /**
                  * @var RedisClient $redisWorker
                  */
-                $redisWorker = WorkerMap::get(RedisClient::class);
+                $redisWorker = RedisClient::getInstance();
                 if (!isset($redisWorker->redisConfigs[$redisName])) {
                     throw new RuntimeException('Redis name does not exist: ' . $redisName);
                 }

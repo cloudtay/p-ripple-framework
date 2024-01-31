@@ -83,8 +83,8 @@ class IndexController
      * @throws JsonException
      * @throws RedisException
      */
-    #[PreventLoggedRequest]                // 禁止已登陆的用户访问
-    #[Validate(LoginFormValidator::class)] // 自动化表单验证
+    #[PreventLoggedRequest]
+    #[Validate(LoginFormValidator::class)]
     public static function login(Request $request, Validate $validate, Session $session): Generator
     {
         if ($validate->validator->fails()) {
