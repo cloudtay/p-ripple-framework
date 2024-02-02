@@ -8,7 +8,7 @@ use app\http\attribute\Validate;
 use app\http\service\validator\LoginFormValidator;
 use app\model\UserModel;
 use app\service\WebSocketService;
-use Cclilshy\PRipple\Facade\JsonRpc;
+use Cclilshy\PRipple\Facade\RPC;
 use Cclilshy\PRipple\Framework\Exception\JsonException;
 use Cclilshy\PRipple\Framework\Facades\Log;
 use Cclilshy\PRipple\Framework\Route\Route;
@@ -38,7 +38,7 @@ class IndexController
             'msg'  => 'success',
             'data' => [
                 'pid'       => posix_getpid(),
-                'rpc'       => array_keys(JsonRpc::getInstance()->rpcServiceConnections),
+                'rpc'       => array_keys(RPC::getInstance()->rpcServiceConnections),
                 'configure' => PRipple::getArgument()
             ]
         ]);
@@ -61,7 +61,7 @@ class IndexController
         if ($message = $request->query('message')) {
             // 请求结束后执行
             $request->defer(fn() => Log::write("notice:$message"));
-            JsonRpc::call([WebSocketService::class, 'sendMessageToAll'], $message);
+            RPC::call([WebSocketService::class, 'sendMessageToAll'], $message);
             return yield $request->respondJson([
                 'code' => 0,
                 'msg'  => 'success',
@@ -148,7 +148,7 @@ class IndexController
             yield $request->respondBody('wait...');
             if ($request->upload) {
                 $request->on(Request::ON_UPLOAD, function (array $fileInfo) {
-                    JsonRpc::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($fileInfo));
+                    RPC::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($fileInfo));
                 });
             }
         }

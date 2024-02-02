@@ -2,16 +2,16 @@
 
 namespace app\service;
 
-use Cclilshy\PRipple\Worker\Built\JsonRpc\Attribute\RPC;
-use Cclilshy\PRipple\Worker\Built\JsonRpc\JsonRpc;
+use Cclilshy\PRipple\Worker\Built\JsonRPC\Attribute\RPCMethod;
+use Cclilshy\PRipple\Worker\Built\JsonRPC\JsonRPC;
 use Cclilshy\PRipple\Worker\Socket\TCPConnection;
 use Cclilshy\PRipple\Worker\Worker;
+use Cclilshy\PRipple\Worker\WorkerNet;
 use Cclilshy\PRippleProtocolWebsocket\WebSocket;
-use Exception;
 
-class WebSocketService extends Worker
+class WebSocketService extends WorkerNet
 {
-    use JsonRpc;
+    use JsonRPC;
 
     public int $mode = Worker::MODE_INDEPENDENT;
 
@@ -47,7 +47,7 @@ class WebSocketService extends Worker
      * @param string $message
      * @return void
      */
-    #[RPC("sendMessageToAll")] public function sendMessageToAll(string $message): void
+    #[RPCMethod("sendMessageToAll")] public function sendMessageToAll(string $message): void
     {
         foreach ($this->getClients() as $client) {
             $client->send($message);

@@ -36,6 +36,6 @@
     "cclilshy/p-ripple-redis": "dev-main",
     "cclilshy/p-ripple-http-service": "dev-main",
     "cclilshy/p-ripple-protocol-websocket": "v1.0.0",
-    "cclilshy/p-ripple-illuminate-database": "v1.0.0"
+    "cclilshy/p-ripple-illuminate-database": "dev-main"
   }
 }
