@@ -8,6 +8,7 @@ use app\http\attribute\Validate;
 use app\http\service\validator\LoginFormValidator;
 use app\model\UserModel;
 use app\service\WebSocketService;
+use Cclilshy\PRipple\Core\Event\Event;
 use Cclilshy\PRipple\Facade\RPC;
 use Cclilshy\PRipple\Framework\Exception\JsonException;
 use Cclilshy\PRipple\Framework\Facades\Log;
@@ -147,8 +148,8 @@ class IndexController
         } else {
             yield $request->respondBody('wait...');
             if ($request->upload) {
-                $request->on(Request::ON_UPLOAD, function (array $fileInfo) {
-                    RPC::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($fileInfo));
+                $request->on(Request::ON_UPLOAD, function (Event $event) {
+                    RPC::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($event->data));
                 });
             }
         }

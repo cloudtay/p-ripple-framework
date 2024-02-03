@@ -11,7 +11,7 @@ return [
         'database'                => 'main',
         'prefix'                  => '',
         'foreign_key_constraints' => true,
-        'thread'                  => 4,
+        'thread'                  => 1,
         'options'                 => [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ]
     ],
 

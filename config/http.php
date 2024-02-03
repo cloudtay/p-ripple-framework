@@ -13,7 +13,7 @@ return [
     'port'           => 8008,
 
     // 监听线程
-    'thread'         => 8,
+    'thread'         => 1,
 
     // 超时时间(s)
     'timeout'        => 60,
