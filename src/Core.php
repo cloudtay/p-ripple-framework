@@ -42,7 +42,6 @@ namespace Cclilshy\PRipple\Framework;
 use Cclilshy\Container\Container;
 use Cclilshy\PRipple\Core\Event\Event;
 use Cclilshy\PRipple\Core\Output;
-use Cclilshy\PRipple\Facade\Buffer;
 use Cclilshy\PRipple\Framework\Exception\JsonException;
 use Cclilshy\PRipple\Framework\Exception\RouteExcept;
 use Cclilshy\PRipple\Framework\Route\Route;
@@ -52,6 +51,7 @@ use Cclilshy\PRipple\Http\Service\HttpWorker;
 use Cclilshy\PRipple\Http\Service\Request;
 use Cclilshy\PRipple\Http\Service\Response;
 use Cclilshy\PRipple\PRipple;
+use Cclilshy\PRipple\Utils\IO;
 use Generator;
 use Illuminate\Support\Facades\View;
 use ReflectionException;
@@ -157,7 +157,7 @@ class Core extends Container
         if (!$router = $this->routeMap->match($request->method, $target)) {
             if ($publicPath = PRipple::getArgument('HTTP_PUBLIC')) {
                 if (is_dir($publicPath) && is_file($publicPath . FS . $target)) {
-                    $body = Buffer::fileGetContents($publicPath . FS . $target);
+                    $body = IO::fileGetContents($publicPath . FS . $target);
                     $mime = Core::TYPES[pathinfo($target, PATHINFO_EXTENSION)] ?? 'text/plain';
                     return yield $request->response->setStatusCode(200)->setHeader('Content-Type', $mime)->setBody($body);
                 } else {

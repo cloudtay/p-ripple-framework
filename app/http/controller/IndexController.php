@@ -15,7 +15,6 @@ use Cclilshy\PRipple\Framework\Facades\Log;
 use Cclilshy\PRipple\Framework\Route\Route;
 use Cclilshy\PRipple\Framework\Session\Session;
 use Cclilshy\PRipple\Http\Service\Request;
-use Cclilshy\PRipple\Http\Service\RequestFactory;
 use Cclilshy\PRipple\PRipple;
 use Generator;
 use Illuminate\Support\Facades\View;
@@ -149,17 +148,19 @@ class IndexController
         } else {
             if ($request->upload) {
                 $files = [];
+
                 $request->on(Request::ON_UPLOAD, function (Event $event) use (&$files) {
-                    $files[] = $event->data;
+                    $event->data['size'] = filesize($event->data['path']);
+                    $event->data['md5']  = md5_file($event->data['path']);
+
+                    $files[]             = $event->data;
                     RPC::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($event->data));
                 });
 
-                $request->flag(Request::ON_UPLOAD);
-                $request->on(RequestFactory::COMPLETE, function (Request $request) use (&$files) {
+                $request->defer(function () use ($request, &$files) {
                     $request->client->send($request->respondJson([
                         'files' => $files
                     ]));
-                    $request->erase(Request::ON_UPLOAD);
                 });
             }
         }
@@ -170,8 +171,8 @@ class IndexController
      */
     public static function sleep(Request $request): Generator
     {
-        \Co\sleep(5);
-        yield $request->respondBody('sleep 5s');
+        \Co\sleep(3);
+        yield $request->respondBody('sleep 3s');
     }
 }
 
