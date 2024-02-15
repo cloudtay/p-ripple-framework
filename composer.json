@@ -32,10 +32,10 @@
     "illuminate/validation": "^10.40",
     "illuminate/view": "^10.31",
     "ext-zend-opcache": "*",
-    "cclilshy/p-ripple": "*",
+    "cclilshy/p-ripple": "dev-main",
     "cclilshy/p-ripple-redis": "dev-main",
     "cclilshy/p-ripple-http-service": "dev-main",
-    "cclilshy/p-ripple-protocol-websocket": "v1.0.0",
+    "cclilshy/p-ripple-protocol-websocket": "dev-main",
     "cclilshy/p-ripple-illuminate-database": "dev-main"
   }
 }

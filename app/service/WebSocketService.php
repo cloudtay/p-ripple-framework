@@ -26,21 +26,21 @@ class WebSocketService extends WorkerNet
 
     /**
      * @param string        $context
-     * @param TCPConnection $tcpConnection
+     * @param TCPConnection $TCPConnection
      * @return void
      */
-    public function onMessage(string $context, TCPConnection $tcpConnection): void
+    public function onMessage(string $context, TCPConnection $TCPConnection): void
     {
-        $tcpConnection->send("message: {$context}");
+        $TCPConnection->send("message: {$context}");
     }
 
     /**
-     * @param TCPConnection $tcpConnection
+     * @param TCPConnection $TCPConnection
      * @return void
      */
-    public function onHandshake(TCPConnection $tcpConnection): void
+    public function onHandshake(TCPConnection $TCPConnection): void
     {
-        $tcpConnection->send("Hello world!");
+        $TCPConnection->send("Hello world!");
     }
 
     /**

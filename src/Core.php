@@ -232,6 +232,5 @@ class Core extends Container
             }
         }
         $request->client->send($request->response->__toString());
-        $this->httpWorker->removeTcpConnection($request->client);
     }
 }

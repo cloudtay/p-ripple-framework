@@ -8,6 +8,7 @@ use app\http\attribute\Validate;
 use app\http\service\validator\LoginFormValidator;
 use app\model\UserModel;
 use app\service\WebSocketService;
+use Cclilshy\PRipple\Core\Coroutine\Coroutine;
 use Cclilshy\PRipple\Core\Event\Event;
 use Cclilshy\PRipple\Facade\RPC;
 use Cclilshy\PRipple\Framework\Exception\JsonException;
@@ -20,6 +21,7 @@ use Generator;
 use Illuminate\Support\Facades\View;
 use RedisException;
 use Throwable;
+use function Co\async;
 
 /**
  * @Class IndexController
@@ -152,12 +154,13 @@ class IndexController
                 $request->on(Request::ON_UPLOAD, function (Event $event) use (&$files) {
                     $event->data['size'] = filesize($event->data['path']);
                     $event->data['md5']  = md5_file($event->data['path']);
-
                     $files[]             = $event->data;
                     RPC::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($event->data));
                 });
 
-                $request->defer(function () use ($request, &$files) {
+                async(function (Coroutine $coroutine) use ($request, &$files) {
+                    $coroutine->await($request);
+
                     $request->client->send($request->respondJson([
                         'files' => $files
                     ]));
