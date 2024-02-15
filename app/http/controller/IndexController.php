@@ -158,9 +158,8 @@ class IndexController
                     RPC::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($event->data));
                 });
 
-                async(function (Coroutine $coroutine) use ($request, &$files) {
-                    $coroutine->await($request);
 
+                $request->then(function () use ($request, &$files) {
                     $request->client->send($request->respondJson([
                         'files' => $files
                     ]));

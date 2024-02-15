@@ -46,6 +46,7 @@ use app\http\attribute\Validate;
 use app\http\service\validator\LoginFormValidator;
 use app\model\UserModel;
 use app\service\WebSocketService;
+use Cclilshy\PRipple\Core\Coroutine\Coroutine;
 use Cclilshy\PRipple\Core\Event\Event;
 use Cclilshy\PRipple\Facade\RPC;
 use Cclilshy\PRipple\Framework\Exception\JsonException;
@@ -58,6 +59,7 @@ use Generator;
 use Illuminate\Support\Facades\View;
 use RedisException;
 use Throwable;
+use function Co\async;
 
 /**
  * @Class IndexController
@@ -184,10 +186,21 @@ class IndexController
             $template = View::make('upload', ['title' => 'please select upload file'])->render();
             return yield $request->respondBody($template);
         } else {
-            yield $request->respondBody('wait...');
             if ($request->upload) {
-                $request->on(Request::ON_UPLOAD, function (Event $event) {
+                $files = [];
+
+                $request->on(Request::ON_UPLOAD, function (Event $event) use (&$files) {
+                    $event->data['size'] = filesize($event->data['path']);
+                    $event->data['md5']  = md5_file($event->data['path']);
+                    $files[]             = $event->data;
                     RPC::call([WebSocketService::class, 'sendMessageToAll'], 'Upload File Info:' . json_encode($event->data));
+                });
+
+
+                $request->then(function () use ($request, &$files) {
+                    $request->client->send($request->respondJson([
+                        'files' => $files
+                    ]));
                 });
             }
         }
@@ -198,8 +211,10 @@ class IndexController
      */
     public static function sleep(Request $request): Generator
     {
-        \Co\sleep(5);
-        yield $request->respondBody('sleep 5s');
+        \Co\sleep(3);
+        yield $request->respondBody('sleep 3s');
     }
 }
+
+
 ```
