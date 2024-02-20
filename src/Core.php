@@ -134,7 +134,7 @@ class Core extends Container
          * @throw Throwable
          */
         $httpWorker->defineExceptionHandler(
-            fn(Throwable $error, Event $event, Request $request) => $webApplication->exceptionHandler($error, $request)
+            fn(Event $event, Request $request) => $webApplication->exceptionHandler($event->data, $request)
         );
     }
 
